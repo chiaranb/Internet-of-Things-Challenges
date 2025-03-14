@@ -12,6 +12,7 @@ const int thDistance = 50;
 
 esp_now_peer_info_t peerInfo;
 
+// Function to initialize the ultrasonic sensor
 void initUltrasonicSensor() {
   pinMode(PIN_TRIG, OUTPUT);
   pinMode(PIN_ECHO, INPUT);
@@ -31,7 +32,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   Serial.println(String(receivedString));
 }
 
-float getDistance(){
+// Function to get the distance using the ultrasonic sensor
+float getDistance() {
   digitalWrite(PIN_TRIG, LOW);
   delayMicroseconds(5);
   digitalWrite(PIN_TRIG, HIGH);
@@ -39,53 +41,78 @@ float getDistance(){
   digitalWrite(PIN_TRIG, LOW);
 
   int duration = pulseIn(PIN_ECHO, HIGH);
-  float distance = duration / 58.0;
+  float distance = duration / 58.0;  // Convert duration to distance in cm
   Serial.print("Distance in cm: ");
   Serial.println(distance);
   return distance;
 }
 
 void setup() {
-  // put your setup code here, to run once:
+  unsigned long startMillis, endMillis;
+
   Serial.begin(115200);
 
-  // initialize ultrasonic sensor
+  // Initialize ultrasonic sensor
+  Serial.println("Initializing ultrasonic sensor...");
+  startMillis = millis();
   initUltrasonicSensor();
+  endMillis = millis();
+  Serial.println("Ultrasonic sensor initialized. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
-  // initialize ESP-NOW
+  // Initialize ESP-NOW
+  Serial.println("Initializing ESP-NOW...");
+  unsigned long startWiFiMillis = millis();
   WiFi.mode(WIFI_STA);
   esp_now_init();
 
-  // Peer Registration
+  // Register peer
+  Serial.println("Registering ESP-NOW peer...");
+  startMillis = millis();
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   esp_now_add_peer(&peerInfo);
+  endMillis = millis();
+  Serial.println("Peer registered. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
+  // Register callbacks
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
 
-  // get distance from sensor 
+  // Get distance from the sensor
+  Serial.println("Getting distance from sensor...");
+  startMillis = millis();
   float distance = getDistance();
+  endMillis = millis();
+  Serial.println("Distance measured. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
-  // distance msg
+  // Prepare the message
   String msg;
-  if(distance <= thDistance) {
+  if (distance <= thDistance) {
     msg = "OCCUPIED";
   } else {
     msg = "FREE";
   }
 
-  esp_now_send(broadcastAddress, (uint8_t*)msg.c_str(), msg.length() +1);
+  // Send the message
+  Serial.println("Sending ESP-NOW message: " + msg);
+  startMillis = millis();
+  esp_now_send(broadcastAddress, (uint8_t*)msg.c_str(), msg.length() + 1);
+  endMillis = millis();
+  Serial.println("Message sent. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
-// enable deep sleep 
-  Serial.println("Going to sleep now");
+  // Enable deep sleep
+  Serial.println("Preparing for deep sleep...");
+  unsigned long endWiFiMillis = millis();
+  Serial.println("WiFi time on: " + String(endWiFiMillis - startWiFiMillis) + " ms");
+  WiFi.mode(WIFI_OFF);
+  delay(1000);
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Serial.println("ESP32 sleep every " + String(TIME_TO_SLEEP));
+  Serial.println("Going to sleep now.");
   Serial.flush();
   esp_deep_sleep_start();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
 }
