@@ -64,6 +64,7 @@ void setup() {
   Serial.println("Initializing ESP-NOW...");
   unsigned long startWiFiMillis = millis();
   WiFi.mode(WIFI_STA);
+  WiFi.setTxPower(WIFI_POWER_2dBm);
   esp_now_init();
 
   // Register peer
@@ -113,3 +114,7 @@ void setup() {
   Serial.flush();
   esp_deep_sleep_start();
 }
+
+void loop() {
+
+};
