@@ -2,13 +2,14 @@
 #include <esp_now.h>
 #include <esp_sleep.h>
 
+// Define the pins for the ultrasonic sensor
 #define PIN_TRIG 13
 #define PIN_ECHO 12
-#define TIME_TO_SLEEP 40
-#define uS_TO_S_FACTOR 1000000
+#define TIME_TO_SLEEP 40 // Time of deep sleep in seconds
+#define uS_TO_S_FACTOR 1000000 
 
-uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x84, 0xFB, 0x90};
-const int thDistance = 50;
+uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x84, 0xFB, 0x90}; // MAC address of the receiver
+const int thDistance = 50; // Threshold distance in cm
 
 esp_now_peer_info_t peerInfo;
 
@@ -41,14 +42,14 @@ float getDistance() {
   digitalWrite(PIN_TRIG, LOW);
 
   int duration = pulseIn(PIN_ECHO, HIGH);
-  float distance = duration / 58.0;  // Convert duration to distance in cm
+  float distance = duration / 58.0;
   Serial.print("Distance in cm: ");
   Serial.println(distance);
   return distance;
 }
 
 void setup() {
-  unsigned long startMillis, endMillis;
+  unsigned long startMillis, endMillis; // Start and end times
 
   Serial.begin(115200);
 
@@ -59,7 +60,7 @@ void setup() {
   endMillis = millis();
   Serial.println("Ultrasonic sensor initialized. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
-  // Initialize ESP-NOW
+  // Initialize ESP-NOW 
   Serial.println("Initializing ESP-NOW...");
   unsigned long startWiFiMillis = millis();
   WiFi.mode(WIFI_STA);
@@ -88,7 +89,7 @@ void setup() {
 
   // Prepare the message
   String msg;
-  if (distance <= thDistance) {
+  if (distance <= thDistance) { 
     msg = "OCCUPIED";
   } else {
     msg = "FREE";
@@ -111,8 +112,4 @@ void setup() {
   Serial.println("Going to sleep now.");
   Serial.flush();
   esp_deep_sleep_start();
-}
-
-void loop() {
-  
 }
