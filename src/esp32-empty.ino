@@ -60,6 +60,21 @@ void setup() {
   endMillis = millis();
   Serial.println("Ultrasonic sensor initialized. Time elapsed: " + String(endMillis - startMillis) + " ms");
 
+  // Get distance from the sensor
+  Serial.println("Getting distance from sensor...");
+  startMillis = millis();
+  float distance = getDistance();
+  endMillis = millis();
+  Serial.println("Distance measured. Time elapsed: " + String(endMillis - startMillis) + " ms");
+
+  // Prepare the message
+  String msg;
+  if (distance <= thDistance) { 
+    msg = "OCCUPIED";
+  } else {
+    msg = "FREE";
+  }
+
   // Initialize ESP-NOW 
   Serial.println("Initializing ESP-NOW...");
   unsigned long startWiFiMillis = millis();
@@ -80,22 +95,7 @@ void setup() {
   // Register callbacks
   esp_now_register_send_cb(OnDataSent);
   esp_now_register_recv_cb(OnDataRecv);
-
-  // Get distance from the sensor
-  Serial.println("Getting distance from sensor...");
-  startMillis = millis();
-  float distance = getDistance();
-  endMillis = millis();
-  Serial.println("Distance measured. Time elapsed: " + String(endMillis - startMillis) + " ms");
-
-  // Prepare the message
-  String msg;
-  if (distance <= thDistance) { 
-    msg = "OCCUPIED";
-  } else {
-    msg = "FREE";
-  }
-
+  
   // Send the message
   Serial.println("Sending ESP-NOW message: " + msg);
   startMillis = millis();
