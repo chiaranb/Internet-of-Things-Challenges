@@ -116,5 +116,5 @@ void setup() {
 }
 
 void loop() {
-
+  // The ESP32 will wake up and run setup() again after deep sleep
 };
